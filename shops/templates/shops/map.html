@@ -92,7 +92,7 @@
 
             valueInput.value = values[handle];
             maximumValue = parseInt(values[handle])
-            console.log("maximumValue", maximumValue)
+
 
             var newShops = JSON.parse(JSON.stringify(shops));
 
@@ -105,11 +105,10 @@
                 }
             }
 
-           console.log(shops)
-           newShops = Object.values(newShops.features).filter(x => x !== undefined);
-           console.log(newShops);
 
-           layerGroup.clearLayers;
+           newShops = Object.values(newShops.features).filter(x => x !== undefined);
+
+           layerGroup.clearLayers();
 
            var feature_layer = new L.geoJSON(newShops);
            feature_layer.bindPopup(function (layer) {
@@ -121,7 +120,7 @@
         } else {
             valueInput.value = values[handle];
             maximumValue = parseInt(values[handle])
-            console.log("maximumValue", maximumValue)
+
 
             var newShops = JSON.parse(JSON.stringify(shops));
 
@@ -134,11 +133,9 @@
                 }
             }
 
-           console.log(shops)
            newShops = Object.values(newShops.features).filter(x => x !== undefined);
-           console.log(newShops);
 
-           layerGroup.clearLayers;
+           layerGroup.clearLayers();
 
            var feature_layer = new L.geoJSON(newShops);
            feature_layer.bindPopup(function (layer) {
@@ -151,10 +148,6 @@
     // When the input changes, set the slider value
     valueInput.addEventListener('change', function(){
         range.noUiSlider.set([null, this.value]);});
-
-
-
-
 
 </script>
 
