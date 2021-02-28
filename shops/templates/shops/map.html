@@ -63,6 +63,8 @@
     const attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     const map = L.map('map', {center: [49, 18], zoom: 7})
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: attribution }).addTo(map);
+    var layerGroup = new L.LayerGroup();
+    layerGroup.addTo(map);
 
     var range = document.getElementById('range');
     noUiSlider.create(range, {
@@ -87,6 +89,7 @@
     range.noUiSlider.on('update', function( values, handle ) {
 
         if ( handle ) {
+
             valueInput.value = values[handle];
             maximumValue = parseInt(values[handle])
             console.log("maximumValue", maximumValue)
@@ -106,12 +109,14 @@
            newShops = Object.values(newShops.features).filter(x => x !== undefined);
            console.log(newShops);
 
+           layerGroup.clearLayers;
 
-           var feature_layer = L.geoJSON(newShops);
+           var feature_layer = new L.geoJSON(newShops);
            feature_layer.bindPopup(function (layer) {
                 return layer.feature.properties.name;
            });
-           feature_layer.addTo(map);
+           feature_layer.addTo(layerGroup);
+
 
         } else {
             valueInput.value = values[handle];
@@ -133,10 +138,13 @@
            newShops = Object.values(newShops.features).filter(x => x !== undefined);
            console.log(newShops);
 
+           layerGroup.clearLayers;
 
-           let feature = L.geoJSON(newShops).bindPopup(function (layer) {
+           var feature_layer = new L.geoJSON(newShops);
+           feature_layer.bindPopup(function (layer) {
                 return layer.feature.properties.name;
-           }).addTo(map);
+           });
+           feature_layer.addTo(layerGroup);
         }
     });
 
