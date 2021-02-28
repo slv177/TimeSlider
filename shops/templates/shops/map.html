@@ -43,28 +43,26 @@
   </div>
 </nav>
 
-
-
     {{ shops|json_script:"shops-data" }}
 
     <div id="map"></div>
     <div id="range"></div>
     <div id="value-input"></div>
     <div id="value-span"></div>
-
 </body>
 
 
 <script>
-    var minimumValue = 25;
+    const shops = JSON.parse(document.getElementById('shops-data').textContent);
+    console.log("shops 0", shops)
+
+    var minimumValue = 5;
     var maximumValue = 75;
 
     // рисуем карту
     const attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     const map = L.map('map', {center: [49, 18], zoom: 7})
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: attribution }).addTo(map);
-
-    const shops = JSON.parse(document.getElementById('shops-data').textContent);
 
     var range = document.getElementById('range');
     noUiSlider.create(range, {
@@ -93,54 +91,53 @@
             maximumValue = parseInt(values[handle])
             console.log("maximumValue", maximumValue)
 
-            var newShops = shops;
+            var newShops = JSON.parse(JSON.stringify(shops));
 
             for (i in newShops.features) {
                 var y = newShops.features[i].properties.year;
                 console.log(y);
                 if (y < minimumValue || y > maximumValue) {
                     delete newShops.features[i];
-                    console.log('to delete')
+                    console.log('to delete');
                 }
             }
 
-            console.log(shops)
-            newShops = Object.values(newShops.features).filter(x => x !== undefined);
-            console.log(newShops);
+           console.log(shops)
+           newShops = Object.values(newShops.features).filter(x => x !== undefined);
+           console.log(newShops);
 
-            let feature = L.geoJSON(newShops).bindPopup(function (layer) {
+
+           var feature_layer = L.geoJSON(newShops);
+           feature_layer.bindPopup(function (layer) {
                 return layer.feature.properties.name;
-            }).addTo(map);
+           });
+           feature_layer.addTo(map);
 
         } else {
-            valueSpan.innerHTML = values[handle];
-            minimumValue = parseInt(values[handle])
-            console.log("minimumValue", minimumValue)
+            valueInput.value = values[handle];
+            maximumValue = parseInt(values[handle])
+            console.log("maximumValue", maximumValue)
 
-            var newShops = [];
+            var newShops = JSON.parse(JSON.stringify(shops));
 
-            for (i in shops.features) {
-                var y = shops.features[i].properties.year;
+            for (i in newShops.features) {
+                var y = newShops.features[i].properties.year;
                 console.log(y);
                 if (y < minimumValue || y > maximumValue) {
-                    newShops += shops.features[i];
-                    {#delete shops.features[i];#}
-                    {#console.log('to delete')#}
+                    delete newShops.features[i];
+                    console.log('to delete');
                 }
             }
 
-            console.log(shops)
-            {#var newShops = Object.values(shops.features).filter(x => x !== undefined);#}
-            console.log(newShops);
+           console.log(shops)
+           newShops = Object.values(newShops.features).filter(x => x !== undefined);
+           console.log(newShops);
 
 
-            let feature = L.geoJSON(newShops).bindPopup(function (layer) {
+           let feature = L.geoJSON(newShops).bindPopup(function (layer) {
                 return layer.feature.properties.name;
-            }).addTo(map);
-
-
+           }).addTo(map);
         }
-
     });
 
     // When the input changes, set the slider value
