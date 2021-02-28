@@ -1,0 +1,156 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <title>Markers Map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{% static 'map.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static '6.css' %}">
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <!-- Только CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
+    <link href="//cdn.bootcss.com/noUiSlider/8.5.1/nouislider.min.css" rel="stylesheet">
+    <script src="//cdn.bootcss.com/noUiSlider/8.5.1/nouislider.js"></script>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Slovenska a Ceska historia</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Переключатель навигации">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link"  href="#">Mapa</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">Članky</a>
+        </li>
+                  <li class="nav-item">
+          <a class="nav-link" href="#">Osoby</a>
+        </li>
+                  <li class="nav-item">
+          <a class="nav-link" href="#">Važby</a>
+        </li>
+      </ul>
+      <form class="d-flex">
+        <input class="form-control me-2" type="search" placeholder="Поиск" aria-label="Поиск">
+        <button class="btn btn-outline-success" type="submit">Поиск</button>
+      </form>
+    </div>
+  </div>
+</nav>
+
+
+
+    {{ shops|json_script:"shops-data" }}
+
+    <div id="map"></div>
+    <div id="range"></div>
+    <div id="value-input"></div>
+    <div id="value-span"></div>
+
+</body>
+
+
+<script>
+    var minimumValue = 25;
+    var maximumValue = 75;
+
+    // рисуем карту
+    const attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    const map = L.map('map', {center: [49, 18], zoom: 7})
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: attribution }).addTo(map);
+
+    const shops = JSON.parse(document.getElementById('shops-data').textContent);
+
+    var range = document.getElementById('range');
+    noUiSlider.create(range, {
+        start: [ minimumValue, maximumValue ], // Handle start position
+        step: 5, // Slider moves in increments of '10'
+        margin: 10, // Handles must be more than '20' apart
+        connect: true, // Display a colored bar between the handles
+
+        orientation: 'horizontal', // Orient the slider vertically
+        behaviour: 'tap-drag', // Move handle on tap, bar is draggable
+        range: { // Slider can select '0' to '100'
+            'min': 0,
+            'max': 100
+        },
+        pips: { // Show a scale with the slider
+            mode: 'steps',
+            density: 0
+        }});
+    var valueInput = document.getElementById('value-input'), valueSpan = document.getElementById('value-span');
+
+    // When the slider value changes, update the input and span
+    range.noUiSlider.on('update', function( values, handle ) {
+
+        if ( handle ) {
+            valueInput.value = values[handle];
+            maximumValue = parseInt(values[handle])
+            console.log("maximumValue", maximumValue)
+
+            var newShops = shops;
+
+            for (i in newShops.features) {
+                var y = newShops.features[i].properties.year;
+                console.log(y);
+                if (y < minimumValue || y > maximumValue) {
+                    delete newShops.features[i];
+                    console.log('to delete')
+                }
+            }
+
+            console.log(shops)
+            newShops = Object.values(newShops.features).filter(x => x !== undefined);
+            console.log(newShops);
+
+            let feature = L.geoJSON(newShops).bindPopup(function (layer) {
+                return layer.feature.properties.name;
+            }).addTo(map);
+
+        } else {
+            valueSpan.innerHTML = values[handle];
+            minimumValue = parseInt(values[handle])
+            console.log("minimumValue", minimumValue)
+
+            var newShops = [];
+
+            for (i in shops.features) {
+                var y = shops.features[i].properties.year;
+                console.log(y);
+                if (y < minimumValue || y > maximumValue) {
+                    newShops += shops.features[i];
+                    {#delete shops.features[i];#}
+                    {#console.log('to delete')#}
+                }
+            }
+
+            console.log(shops)
+            {#var newShops = Object.values(shops.features).filter(x => x !== undefined);#}
+            console.log(newShops);
+
+
+            let feature = L.geoJSON(newShops).bindPopup(function (layer) {
+                return layer.feature.properties.name;
+            }).addTo(map);
+
+
+        }
+
+    });
+
+    // When the input changes, set the slider value
+    valueInput.addEventListener('change', function(){
+        range.noUiSlider.set([null, this.value]);});
+
+
+
+
+
+</script>
+
+</html>
