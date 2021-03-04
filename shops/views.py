@@ -34,7 +34,7 @@ class MapView(TemplateView):
     def get_context_data(self, **kwargs):
         """Return the view context data."""
         context = super().get_context_data(**kwargs)
-        context["shops"] = json.loads(serialize("geojson", Shop.objects.all()))
+        context["points"] = json.loads(serialize("geojson", Shop.objects.all()))
         print(context)
         return context
 
